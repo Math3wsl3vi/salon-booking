@@ -31,18 +31,40 @@ import { Search, Download, Calendar, Users, DollarSign, Filter } from "lucide-re
 
 type Booking = {
   id: string;
-  userEmail: string;
-  userId: string;
-  serviceName: string;
-  price: number;
+  customer: {
+    name: string;
+    email: string;
+    phone: string;
+    notes: string;
+  };
+  appointment: {
+    date: string;
+    time: string;
+    datetime: Timestamp;
+  };
+  services: Array<{
+    id: string;
+    name: string;
+    price: number;
+    duration: number;
+    quantity: number;
+    total: number;
+  }>;
+  stylist: {
+    id: string;
+    name: string;
+    specialty: string;
+  } | null;
+  payment: {
+    method: string;
+    status: string;
+    totalAmount: number;
+  };
   status: "pending" | "confirmed" | "completed" | "cancelled";
-  createdAt?: Timestamp;
-  receiptUrl?: string;
-  duration: number;
-  stylistName: string;
-  bookingDate: Timestamp;
-  bookingTime: string;
-  customerName: string;
+  totalAmount: number;
+  totalDuration: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 };
 
 const AdminBookings = () => {
@@ -60,20 +82,33 @@ const AdminBookings = () => {
       const updatedBookings: Booking[] = snapshot.docs
         .map((doc) => {
           const data = doc.data();
+          console.log('Booking data:', data); // Debug log
+          
           return {
             id: doc.id,
-            userEmail: data.userEmail,
-            userId: data.userId,
+            customer: data.customer || {
+              name: "Unknown Customer",
+              email: "unknown@email.com",
+              phone: "",
+              notes: ""
+            },
+            appointment: data.appointment || {
+              date: new Date().toISOString().split('T')[0],
+              time: "00:00",
+              datetime: Timestamp.now()
+            },
+            services: data.services || [],
+            stylist: data.stylist || null,
+            payment: data.payment || {
+              method: "unknown",
+              status: "pending",
+              totalAmount: 0
+            },
             status: data.status || "pending",
-            duration: data.duration || 60,
+            totalAmount: data.totalAmount || 0,
+            totalDuration: data.totalDuration || 0,
             createdAt: data.createdAt || Timestamp.now(),
-            receiptUrl: data.receiptUrl || "",
-            serviceName: data.serviceName || "N/A",
-            price: data.price || 0,
-            stylistName: data.stylistName || "Not assigned",
-            bookingDate: data.bookingDate || Timestamp.now(),
-            bookingTime: data.bookingTime || "N/A",
-            customerName: data.customerName || data.userEmail?.split('@')[0] || "Customer"
+            updatedAt: data.updatedAt || Timestamp.now()
           };
         })
         .sort(
@@ -94,10 +129,12 @@ const AdminBookings = () => {
     // Search filter
     if (searchTerm) {
       result = result.filter(booking =>
-        booking.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.serviceName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.stylistName?.toLowerCase().includes(searchTerm.toLowerCase())
+        booking.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.customer?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.services?.some(service => 
+          service.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ||
+        booking.stylist?.name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -126,33 +163,41 @@ const AdminBookings = () => {
   const downloadReport = () => {
     // Prepare CSV headers
     const headers = [
-      "Service Name",
       "Customer Name",
       "Customer Email",
+      "Customer Phone",
+      "Services",
       "Stylist",
-      "Duration (min)",
-      "Price",
-      "Booking Date",
-      "Booking Time",
-      "Status",
-      "Booked At",
-      "Receipt URL"
+      "Appointment Date",
+      "Appointment Time",
+      "Total Amount",
+      "Payment Method",
+      "Payment Status",
+      "Booking Status",
+      "Total Duration",
+      "Booked At"
     ].join(",");
     
     // Prepare CSV rows
     const rows = filteredBookings.map(booking => {
+      const servicesList = booking.services.map(service => 
+        `${service.name} (x${service.quantity})`
+      ).join('; ');
+      
       return [
-        `"${booking.serviceName}"`,
-        `"${booking.customerName}"`,
-        `"${booking.userEmail}"`,
-        `"${booking.stylistName}"`,
-        booking.duration,
-        `Ksh ${booking.price}`,
-        `"${booking.bookingDate ? new Date(booking.bookingDate.toDate()).toLocaleDateString() : "N/A"}"`,
-        `"${booking.bookingTime}"`,
-        booking.status,
-        `"${booking.createdAt ? new Date(booking.createdAt.toDate()).toLocaleString() : "N/A"}"`,
-        `"${booking.receiptUrl || "N/A"}"`
+        `"${booking.customer?.name || "N/A"}"`,
+        `"${booking.customer?.email || "N/A"}"`,
+        `"${booking.customer?.phone || "N/A"}"`,
+        `"${servicesList}"`,
+        `"${booking.stylist?.name || "Not Assigned"}"`,
+        `"${booking.appointment?.date || "N/A"}"`,
+        `"${booking.appointment?.time || "N/A"}"`,
+        `KSH ${booking.totalAmount}`,
+        `"${booking.payment?.method || "N/A"}"`,
+        `"${booking.payment?.status || "N/A"}"`,
+        `"${booking.status}"`,
+        `${booking.totalDuration} min`,
+        `"${booking.createdAt ? new Date(booking.createdAt.toDate()).toLocaleString() : "N/A"}"`
       ].join(",");
     });
     
@@ -190,10 +235,9 @@ const AdminBookings = () => {
   // Calculate statistics
   const totalRevenue = bookings
     .filter(booking => booking.status === "completed")
-    .reduce((sum, booking) => sum + booking.price, 0);
+    .reduce((sum, booking) => sum + booking.totalAmount, 0);
 
   const pendingBookings = bookings.filter(booking => booking.status === "pending").length;
-  // const confirmedBookings = bookings.filter(booking => booking.status === "confirmed").length;
   const completedBookings = bookings.filter(booking => booking.status === "completed").length;
 
   // Pagination logic
@@ -203,7 +247,7 @@ const AdminBookings = () => {
   const currentBookings = filteredBookings.slice(indexOfFirstBooking, indexOfLastBooking);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 mt-20">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -212,7 +256,7 @@ const AdminBookings = () => {
             Manage all salon appointments and bookings
           </p>
         </div>
-        <Button onClick={downloadReport} className="bg-[#E8B4B8] hover:bg-[#E8B4B8]/90">
+        <Button onClick={downloadReport} className="bg-black hover:bg-gray-800">
           <Download className="w-4 h-4 mr-2" />
           Export Report
         </Button>
@@ -256,7 +300,7 @@ const AdminBookings = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">Ksh {totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-blue-600">KSH {totalRevenue.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
@@ -300,53 +344,67 @@ const AdminBookings = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Service</TableHead>
                 <TableHead>Customer</TableHead>
+                <TableHead>Services</TableHead>
                 <TableHead>Stylist</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Booking Date & Time</TableHead>
+                <TableHead>Appointment</TableHead>
+                <TableHead>Total Amount</TableHead>
+                <TableHead>Payment</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Receipt</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {currentBookings.map((booking) => (
                 <TableRow key={booking.id}>
-                  <TableCell className="font-medium">{booking.serviceName}</TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{booking.customerName}</div>
-                      <div className="text-sm text-muted-foreground">{booking.userEmail}</div>
+                      <div className="font-medium">{booking.customer?.name}</div>
+                      <div className="text-sm text-muted-foreground">{booking.customer?.email}</div>
+                      <div className="text-sm text-muted-foreground">{booking.customer?.phone}</div>
                     </div>
                   </TableCell>
-                  <TableCell>{booking.stylistName}</TableCell>
-                  <TableCell>{booking.duration} min</TableCell>
-                  <TableCell>Ksh {booking.price}</TableCell>
                   <TableCell>
-                    {booking.bookingDate 
-                      ? new Date(booking.bookingDate.toDate()).toLocaleDateString() 
-                      : "N/A"} at {booking.bookingTime}
+                    <div className="space-y-1">
+                      {booking.services.map((service, index) => (
+                        <div key={index} className="text-sm">
+                          {service.name} × {service.quantity}
+                          <div className="text-xs text-muted-foreground">
+                            KSH {service.total} • {service.duration} min
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {booking.stylist?.name || "Any Available"}
+                    {booking.stylist?.specialty && (
+                      <div className="text-xs text-muted-foreground">
+                        {booking.stylist.specialty}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div>{booking.appointment?.date}</div>
+                      <div className="text-muted-foreground">{booking.appointment?.time}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-semibold">
+                    KSH {booking.totalAmount?.toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div className="capitalize">{booking.payment?.method}</div>
+                      <div className="text-xs text-muted-foreground capitalize">
+                        {booking.payment?.status}
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={getStatusBadge(booking.status)}>
                       {booking.status}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {booking.receiptUrl ? (
-                      <a 
-                        href={booking.receiptUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-blue-500 hover:text-blue-700 underline text-sm"
-                      >
-                        Download
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground">N/A</span>
-                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

@@ -21,28 +21,26 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { doc, setDoc } from "firebase/firestore";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true); // 🔹 New state to track auth status
+  const [authLoading, setAuthLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [resetSuccess, setResetSuccess] = useState("");
-  const [userType, setUserType] = useState("staff");
 
   // ✅ Only navigate if user is found
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        router.replace("/"); // 🔹 Prevents multiple redirects
+        router.replace("/");
       }
-      setAuthLoading(false); // 🔹 Ensure UI loads after check
+      setAuthLoading(false);
     });
 
     return () => unsubscribe();
@@ -66,7 +64,7 @@ const LoginPage = () => {
         await setDoc(doc(db, "users", user.uid), {
           name: name,
           email: user.email,
-          userType: userType,
+          userType: "customer", // Default to customer for salon system
           createdAt: new Date(),
         });
       }
@@ -116,65 +114,61 @@ const LoginPage = () => {
       </div>
     );
   }
+
   return (
-    <div className="flex justify-center items-center w-full h-screen">
-      <Card className="w-[350px]">
+    <div className="flex justify-center items-center w-full h-screen bg-[#FAF6F3]">
+      <Card className="w-[350px] shadow-lg">
         <CardHeader className="flex items-center flex-col">
-          <CardTitle>Welcome to ChakulaHub</CardTitle>
-          <CardDescription>{isLogin ? "Login To Your Account" : "Create an Account"}</CardDescription>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {resetSuccess && <p className="text-green-500 text-sm">{resetSuccess}</p>}
+          <CardTitle className="text-2xl font-serif" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Welcome to Our Maison de Beauté
+          </CardTitle>
+          <CardDescription className="text-center">
+            {isLogin ? "Login to your account" : "Create an account to book appointments"}
+          </CardDescription>
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          {resetSuccess && <p className="text-green-500 text-sm text-center">{resetSuccess}</p>}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAuth}>
             <div className="grid w-full items-center gap-4">
               {!isLogin && (
-                <>
-                  <div className="flex flex-col space-y-1.5">
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-                  </div>
-                  
-                  <div className="flex flex-col space-y-1.5">
-                    <Label>User Type</Label>
-                    <RadioGroup 
-                      defaultValue="staff" 
-                      className="flex gap-4" 
-                      onValueChange={(value) => setUserType(value)}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="staff" id="staff" />
-                        <Label htmlFor="staff">Staff</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="trainee" id="trainee" />
-                        <Label htmlFor="trainee">Trainee</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="other" id="other" />
-                        <Label htmlFor="other">Other</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input 
+                    id="name" 
+                    placeholder="Enter your full name" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                    required={!isLogin}
+                  />
+                </div>
               )}
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input 
+                  id="email" 
+                  type="email"
+                  placeholder="Enter your email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  required
+                />
               </div>
               <div className="flex flex-col space-y-1.5 relative">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Input
                     id="password"
-                    placeholder="Password"
+                    placeholder="Enter your password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-2 text-gray-500"
+                    className="absolute right-3 top-2 text-gray-500 hover:text-gray-700"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
@@ -182,14 +176,18 @@ const LoginPage = () => {
                 </div>
               </div>
             </div>
-            <button className="w-full bg-orange-1 text-white p-2 rounded mt-4" type="submit" disabled={loading}>
+            <button 
+              className="w-full bg-black text-white p-3 rounded-lg mt-4 font-semibold hover:bg-gray-800 transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed" 
+              type="submit" 
+              disabled={loading}
+            >
               {loading ? "Processing..." : isLogin ? "Login" : "Sign Up"}
             </button>
           </form>
 
           {isLogin && (
             <p
-              className="text-sm cursor-pointer text-blue-500 text-center mt-2"
+              className="text-sm cursor-pointer text-blue-600 text-center mt-3 hover:text-blue-800 transition-colors"
               onClick={handleResetPassword}
             >
               Forgot Password?
@@ -197,7 +195,10 @@ const LoginPage = () => {
           )}
         </CardContent>
         <CardFooter className="flex justify-center mt-2">
-          <p className="text-sm cursor-pointer text-gray-600" onClick={() => setIsLogin(!isLogin)}>
+          <p 
+            className="text-sm cursor-pointer text-gray-600 hover:text-black transition-colors" 
+            onClick={() => setIsLogin(!isLogin)}
+          >
             {isLogin ? "Need an account? Sign Up" : "Already have an account? Login"}
           </p>
         </CardFooter>

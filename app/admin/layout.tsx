@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import Navbar from "@/components/home/Navbar";
+import "./../globals.css";
 
 import { Toaster } from "@/components/ui/toaster";
 import { BookingProvider } from "@/context/BookingContext";
@@ -24,17 +23,11 @@ export default function RootLayout({
         className={`antialiased`}
       >
         <AuthProvider>
-          <BookingProvider>
-        <div>
-          <Navbar/>
-        </div>
+        <BookingProvider>
         <Toaster/>
         {children}
-        <div className="">
-        {/* <BottomBar /> */}
-      </div>
-      </BookingProvider>
-      </AuthProvider>
+        </BookingProvider>
+        </AuthProvider>
       </body>
     </html>
   );
