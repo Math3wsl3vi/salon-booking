@@ -32,7 +32,7 @@ interface Stylist {
 interface CustomerInfo {
   name: string;
   phone: string;
-  email: string;
+  email?: string;
   notes: string;
 }
 
