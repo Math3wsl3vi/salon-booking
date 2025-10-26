@@ -170,7 +170,7 @@ const ServicesAdmin = () => {
             </p>
           </div>
           <Button 
-            onClick={() => router.push("/admin/services/add")}
+            onClick={() => router.push("/admin/AddService")}
             className="bg-black hover:bg-gray-800"
           >
             <Plus className="w-4 h-4 mr-2" />

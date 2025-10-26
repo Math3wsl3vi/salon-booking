@@ -34,7 +34,7 @@ const AdminDashboard = () => {
     {
       title: "Services",
       description: "Manage services & pricing",
-      href: "/admin/AddService",
+      href: "/admin/services-admin",
       icon: Scissors,
       count: "12",
       color: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
