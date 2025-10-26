@@ -135,7 +135,7 @@ export default function CustomerInfoPage() {
                   placeholder="+254 XXX XXX XXX"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  We'll use this to send appointment reminders
+                 {" We'll"} use this to send appointment reminders
                 </p>
               </div>
             </div>

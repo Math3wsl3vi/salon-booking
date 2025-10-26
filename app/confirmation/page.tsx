@@ -17,7 +17,6 @@ const Confirmation = () => {
     getTotalDuration,
     setPaymentMethod,
     submitBooking,
-    clearBooking
   } = useBooking();
 
   const [paymentChoice, setPaymentChoice] = useState<'now' | 'later' | null>(null);

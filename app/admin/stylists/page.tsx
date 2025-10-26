@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { db } from "@/configs/firebaseConfig";
-import { collection, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -49,7 +49,7 @@ type Stylist = {
   phone: string;
   experience: string;
   status: "active" | "inactive";
-  createdAt: any;
+  createdAt: Timestamp;
 };
 
 const Stylists = () => {

@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { db } from "@/configs/firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const AddService = () => {
   const router = useRouter();
@@ -248,7 +249,9 @@ const AddService = () => {
                       }`}
                       onClick={() => setService({ ...service, imageUrl: url })}
                     >
-                      <img 
+                      <Image
+                      width={300} 
+                      height={400}
                         src={url} 
                         alt={`Suggestion ${index + 1}`}
                         className="w-full h-20 object-cover"
@@ -263,7 +266,9 @@ const AddService = () => {
                 <div className="mt-4">
                   <p className="text-sm font-medium text-gray-700 mb-2">Image Preview:</p>
                   <div className="border border-gray-300 rounded-lg p-2 max-w-xs">
-                    <img 
+                    <Image
+                    width={300} 
+                    height={400}
                       src={service.imageUrl} 
                       alt="Service preview"
                       className="w-full h-32 object-cover rounded"

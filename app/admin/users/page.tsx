@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { collection, onSnapshot, doc, updateDoc, Timestamp } from "firebase/firestore";
 import {
@@ -21,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Download, Filter, User, Phone, Calendar } from "lucide-react";
+import { Search, Download, Filter, User, Phone, Calendar, Mail } from "lucide-react";
 import { db } from "@/configs/firebaseConfig";
 
 interface Customer {
@@ -34,6 +33,7 @@ interface Customer {
   totalBookings?: number;
   lastBooking?: Timestamp;
   loyaltyPoints?: number;
+  userType?: string;
 }
 
 const AdminCustomersPage = () => {
@@ -42,6 +42,7 @@ const AdminCustomersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [loyaltyFilter, setLoyaltyFilter] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
@@ -50,6 +51,14 @@ const AdminCustomersPage = () => {
         ...(doc.data() as Omit<Customer, "id">),
       }));
       
+      // Filter only customers (not admins or stylists)
+      const customerUsers = fetchedUsers.filter(user => 
+        !user.userType || user.userType === "customer" || !user.userType
+      );
+      
+      setCustomers(customerUsers);
+      setFilteredCustomers(customerUsers);
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -90,8 +99,9 @@ const AdminCustomersPage = () => {
   }, [customers, searchTerm, statusFilter, loyaltyFilter]);
 
   // Customer statistics
-  const activeCustomers = customers.filter(c => c.status !== "inactive").length;
-  const newCustomersThisMonth = customers.filter(c => {
+  const activeCustomers = customers.filter((c: Customer) => c.status !== "inactive").length;
+  
+  const newCustomersThisMonth = customers.filter((c: Customer) => {
     if (!c.createdAt) return false;
     const customerDate = c.createdAt.toDate();
     const now = new Date();
@@ -99,7 +109,7 @@ const AdminCustomersPage = () => {
            customerDate.getFullYear() === now.getFullYear();
   }).length;
 
-  const highValueCustomers = customers.filter(c => (c.loyaltyPoints || 0) >= 100).length;
+  const highValueCustomers = customers.filter((c: Customer) => (c.loyaltyPoints || 0) >= 100).length;
 
   // Update customer status
   const updateCustomerStatus = async (customerId: string, status: "active" | "inactive") => {
@@ -155,200 +165,230 @@ const AdminCustomersPage = () => {
     return "Bronze";
   };
 
-  return (
-    <div className="p-6 space-y-6 mt-20">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Customer Management</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage all registered customers and their booking history
-          </p>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FAF6F3] mt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading customers...</p>
         </div>
-        <Button onClick={downloadReport} className="bg-black hover:bg-gray-800">
-          <Download className="w-4 h-4 mr-2" />
-          Export Customers
-        </Button>
       </div>
+    );
+  }
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{customers.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {activeCustomers}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New This Month</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {newCustomersThisMonth}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gold Members</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {highValueCustomers}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search customers by name, email, or phone..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={loyaltyFilter} onValueChange={setLoyaltyFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Loyalty Level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                <SelectItem value="high">Gold (100+ pts)</SelectItem>
-                <SelectItem value="medium">Silver (50-99 pts)</SelectItem>
-                <SelectItem value="low">Bronze (0-49 pts)</SelectItem>
-              </SelectContent>
-            </Select>
+  return (
+    <div className="min-h-screen bg-[#FAF6F3] mt-20">
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Customer Management</h1>
+            <p className="text-muted-foreground mt-2">
+              Manage all registered customers and their booking history
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <Button onClick={downloadReport} className="bg-black hover:bg-gray-800">
+            <Download className="w-4 h-4 mr-2" />
+            Export Customers
+          </Button>
+        </div>
 
-      {/* Customers Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Registered Customers ({filteredCustomers.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer Name</TableHead>
-                <TableHead>Contact Info</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Total Bookings</TableHead>
-                <TableHead>Loyalty Level</TableHead>
-                <TableHead>Last Booking</TableHead>
-                <TableHead>Member Since</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCustomers.map((customer) => (
-                <TableRow key={customer.id}>
-                  <TableCell className="font-medium">
-                    <div>
-                      <div className="font-semibold">{customer.name || "N/A"}</div>
-                      <div className="text-sm text-muted-foreground">{customer.email}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      <span>{customer.phone || "No phone"}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadge(customer.status || "active")}>
-                      {customer.status || "active"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-semibold">
-                      {customer.totalBookings || 0}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getLoyaltyBadge(customer.loyaltyPoints || 0)}>
-                      {getLoyaltyLevel(customer.loyaltyPoints || 0)}
-                      <span className="ml-1">({customer.loyaltyPoints || 0} pts)</span>
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {customer.lastBooking ? 
-                      customer.lastBooking.toDate().toLocaleDateString() : 
-                      "Never"
-                    }
-                  </TableCell>
-                  <TableCell>
-                    {customer.createdAt ? 
-                      customer.createdAt.toDate().toLocaleDateString() : 
-                      "N/A"
-                    }
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Select
-                      value={customer.status || "active"}
-                      onValueChange={(value: "active" | "inactive") => 
-                        updateCustomerStatus(customer.id, value)
-                      }
-                    >
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+              <User className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{customers.length}</div>
+            </CardContent>
+          </Card>
 
-          {filteredCustomers.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No customers found matching your criteria.
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
+              <User className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {activeCustomers}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">New This Month</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {newCustomersThisMonth}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Gold Members</CardTitle>
+              <User className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">
+                {highValueCustomers}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search customers by name, email, or phone..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={loyaltyFilter} onValueChange={setLoyaltyFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Loyalty Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="high">Gold (100+ pts)</SelectItem>
+                  <SelectItem value="medium">Silver (50-99 pts)</SelectItem>
+                  <SelectItem value="low">Bronze (0-49 pts)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        {/* Customers Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Registered Customers ({filteredCustomers.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Customer Name</TableHead>
+                  <TableHead>Contact Info</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Total Bookings</TableHead>
+                  <TableHead>Loyalty Level</TableHead>
+                  <TableHead>Last Booking</TableHead>
+                  <TableHead>Member Since</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCustomers.map((customer) => (
+                  <TableRow key={customer.id}>
+                    <TableCell className="font-medium">
+                      <div>
+                        <div className="font-semibold">{customer.name || "N/A"}</div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {customer.email}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        <span>{customer.phone || "No phone"}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusBadge(customer.status || "active")}>
+                        {customer.status || "active"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-semibold">
+                        {customer.totalBookings || 0}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getLoyaltyBadge(customer.loyaltyPoints || 0)}>
+                        {getLoyaltyLevel(customer.loyaltyPoints || 0)}
+                        <span className="ml-1">({customer.loyaltyPoints || 0} pts)</span>
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {customer.lastBooking ? 
+                        customer.lastBooking.toDate().toLocaleDateString() : 
+                        "Never"
+                      }
+                    </TableCell>
+                    <TableCell>
+                      {customer.createdAt ? 
+                        customer.createdAt.toDate().toLocaleDateString() : 
+                        "N/A"
+                      }
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Select
+                        value={customer.status || "active"}
+                        onValueChange={(value: "active" | "inactive") => 
+                          updateCustomerStatus(customer.id, value)
+                        }
+                      >
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {filteredCustomers.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-muted-foreground mb-4">
+                  {customers.length === 0 ? (
+                    <>
+                      <User className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                      <p className="text-lg font-semibold">No customers found</p>
+                      <p className="mt-2">Customer data will appear here once users register or make bookings.</p>
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                      <p className="text-lg font-semibold">No matching customers</p>
+                      <p className="mt-2">Try adjusting your search or filters</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

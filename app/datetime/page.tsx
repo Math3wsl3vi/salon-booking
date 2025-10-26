@@ -80,7 +80,7 @@ export default function DateTimePage() {
             Select Date & Time
           </h1>
           <p className="text-gray-600 text-center mb-8">
-            Choose when you'd like your appointment.
+            Choose when {"you'd"} like your appointment.
           </p>
 
           {/* Date Picker */}

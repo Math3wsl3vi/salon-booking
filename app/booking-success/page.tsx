@@ -18,21 +18,23 @@ const BookingSuccess = () => {
     clearBooking
   } = useBooking();
 
-  // Check if we have booking data on component mount
-  useEffect(() => {
-    console.log('BookingSuccess mounted - selectedServices:', selectedServices.length);
-    console.log('Booking data:', {
-      services: selectedServices,
-      date: selectedDate,
-      time: selectedTime,
-      customer: customerInfo
-    });
+// Check if we have booking data on component mount
+// eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
+  console.log('BookingSuccess mounted - selectedServices:', selectedServices.length);
+  console.log('Booking data:', {
+    services: selectedServices,
+    date: selectedDate,
+    time: selectedTime,
+    customer: customerInfo
+  });
 
-    if (selectedServices.length === 0) {
-      console.log('No booking data found, redirecting to services...');
-      router.push('/services-page');
-    }
-  }, []); // Empty dependency array - only run on mount
+  if (selectedServices.length === 0) {
+    console.log('No booking data found, redirecting to services...');
+    router.push('/services-page');
+  }
+}, []); // Run only once on mount
+
 
   if (!selectedServices.length) {
     return (
@@ -149,7 +151,7 @@ const BookingSuccess = () => {
             Booking Confirmed!
           </h1>
           <p className="text-gray-600 text-lg mb-8">
-            Your appointment has been successfully scheduled. We've sent a confirmation to your email.
+            Your appointment has been successfully scheduled. {"We've"} sent a confirmation to your email.
           </p>
 
           {/* Booking Summary */}

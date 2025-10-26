@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { SparklesIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function Hero() {
   const router = useRouter();
@@ -11,7 +12,9 @@ export default function Hero() {
       <section className="relative h-screen w-full bg-[#FAF6F3] overflow-hidden">
         {/* Static Background Image */}
         <div className="absolute inset-0">
-          <img
+          <Image
+          width={900}
+          height={900}
             src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170"
             alt="Salon"
             className="absolute inset-0 w-full h-full object-cover"

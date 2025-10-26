@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { db } from "@/configs/firebaseConfig";
-import { collection, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -44,7 +44,7 @@ type Service = {
   description: string;
   imageUrl: string;
   active: boolean;
-  createdAt: any;
+  createdAt: Timestamp;
 };
 
 const ServicesAdmin = () => {

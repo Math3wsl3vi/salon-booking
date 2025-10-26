@@ -4,6 +4,7 @@ import { db } from "@/configs/firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const AddStylists = () => {
   const router = useRouter();
@@ -358,7 +359,9 @@ const AddStylists = () => {
                       }`}
                       onClick={() => setStylist({ ...stylist, imageUrl: url })}
                     >
-                      <img 
+                      <Image
+                      width={500} 
+                      height={500}
                         src={url} 
                         alt={`Suggestion ${index + 1}`}
                         className="w-full h-20 object-cover"
@@ -373,7 +376,9 @@ const AddStylists = () => {
                 <div className="mt-4">
                   <p className="text-sm font-medium text-gray-700 mb-2">Image Preview:</p>
                   <div className="border border-gray-300 rounded-lg p-2 max-w-xs">
-                    <img 
+                    <Image
+                    width={500} 
+                    height={500}
                       src={stylist.imageUrl} 
                       alt="Stylist preview"
                       className="w-full h-32 object-cover rounded"
