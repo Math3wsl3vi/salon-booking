@@ -1,17 +1,17 @@
-import withPWA from "next-pwa"; // ✅ Correct import
+import withPWA from "next-pwa";
 import type { NextConfig } from "next";
 
 const isProd = process.env.NODE_ENV === "production";
 
 const pwaConfig = withPWA({
   dest: "public",
-  disable: !isProd, // Disable PWA in development
+  disable: !isProd,
   register: true,
   skipWaiting: true,
 });
 
 const nextConfig: NextConfig = {
-  ...pwaConfig, 
+  ...pwaConfig,
   reactStrictMode: true,
   images: {
     remotePatterns: [
@@ -19,9 +19,12 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "firebasestorage.googleapis.com",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com", // ✅ Add this line
+      },
     ],
   },
-};// ✅ Spread instead of direct assignment
-
+};
 
 export default nextConfig;
