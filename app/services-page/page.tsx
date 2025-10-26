@@ -1,11 +1,15 @@
+
+
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { SearchIcon, PlusIcon, MinusIcon, ArrowLeftIcon, CheckIcon } from 'lucide-react';
+import { SearchIcon, PlusIcon, MinusIcon, CheckIcon } from 'lucide-react';
 import { useBooking } from '@/context/BookingContext';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+
 const categories = ['All', 'Hair', 'Nails', 'Skin', 'Spa'];
+
 const allServices = [{
   id: '1',
   name: 'Haircut & Styling',
@@ -103,80 +107,124 @@ const allServices = [{
   description: 'Therapeutic stone massage',
   image: 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=400&h=300&fit=crop'
 }];
+
 export default function ServicesPage() {
-    const router = useRouter()
+  const router = useRouter();
   const {
     selectedServices,
     addService,
     updateServiceQuantity,
     getTotalPrice
   } = useBooking();
+  
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  // Fix for hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const filteredServices = allServices.filter(service => {
     const matchesCategory = selectedCategory === 'All' || service.category === selectedCategory;
-    const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) || service.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         service.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
   const getServiceQuantity = (serviceId: string) => {
     const service = selectedServices.find(s => s.id === serviceId);
     return service ? service.quantity : 0;
   };
+
   const handleContinue = () => {
     if (selectedServices.length > 0) {
       router.push('/stylist');
     }
   };
-  return <div className="min-h-screen bg-[#FAF6F3] w-full pb-32 mt-20">
+
+  // Prevent rendering until mounted to avoid hydration issues
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#FAF6F3] w-full flex items-center justify-center">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FAF6F3] w-full pb-32 mt-20">
       {/* Header */}
       <div className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 mb-5">
-            <button onClick={() => router.push('/')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <ArrowLeftIcon className="w-6 h-6 text-[#2C2C2C]" />
-            </button>
-            <h1 className="text-3xl font-serif text-[#2C2C2C] hidden md:block" style={{
-            fontFamily: 'Playfair Display, serif'
-          }}>
-              Choose Your Services
-            </h1>
-          </div>
           {/* Search Bar */}
           <div className="relative">
             <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input type="text" placeholder="Search services..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#E8B4B8] transition-all" />
+            <input 
+              type="text" 
+              placeholder="Search services..." 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-black transition-all" 
+            />
           </div>
         </div>
       </div>
+
       {/* Category Filters */}
-      <div className="sticky top-[140px] bg-[#FAF6F3] z-30 py-4 px-4 border-b border-gray-200">
+      <div className="bg-[#FAF6F3] z-30 py-4 px-4 border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {categories.map(category => <button key={category} onClick={() => setSelectedCategory(category)} className={`px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all duration-300 ${selectedCategory === category ? 'bg-[#E8B4B8] text-white shadow-md' : 'bg-white text-[#2C2C2C] hover:bg-gray-100'}`}>
+          {categories.map(category => (
+            <button 
+              key={category} 
+              onClick={() => setSelectedCategory(category)}
+              className={`px-6 py-2 font-medium whitespace-nowrap transition-all duration-300 ${
+                selectedCategory === category 
+                  ? 'bg-black text-white shadow-md' 
+                  : 'bg-white text-[#2C2C2C] hover:bg-gray-100'
+              }`}
+            >
               {category}
-            </button>)}
+            </button>
+          ))}
         </div>
       </div>
+
       {/* Services Grid */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredServices.map((service, index) => {
-          const quantity = getServiceQuantity(service.id);
-          const isSelected = quantity > 0;
-          return <motion.div key={service.id} className={`bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 ${isSelected ? 'ring-2 ring-[#E8B4B8]' : ''}`} initial={{
-            opacity: 0,
-            y: 20
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            delay: index * 0.05
-          }}>
+            const quantity = getServiceQuantity(service.id);
+            const isSelected = quantity > 0;
+            
+            return (
+              <motion.div 
+                key={service.id}
+                className={`bg-white rounded-md overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 ${
+                  isSelected ? 'ring-2 ring-black' : ''
+                }`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                layout // Add layout prop for better animations
+              >
                 <div className="relative h-48 overflow-hidden">
-                  <Image width={400} height={400} src={service.image} alt={service.name} className="w-full h-full object-cover" />
-                  {isSelected && <div className="absolute top-4 right-4 w-8 h-8 bg-[#E8B4B8] rounded-full flex items-center justify-center shadow-lg">
+                  <Image 
+                    width={400} 
+                    height={300} 
+                    src={service.image} 
+                    alt={service.name} 
+                    className="w-full h-full object-cover"
+                    priority={index < 6} // Prioritize loading first few images
+                  />
+                  {isSelected && (
+                    <div className="absolute top-4 right-4 w-8 h-8 bg-black rounded-full flex items-center justify-center shadow-lg">
                       <CheckIcon className="w-5 h-5 text-white" />
-                    </div>}
+                    </div>
+                  )}
                 </div>
+                
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="text-xl font-semibold text-[#2C2C2C]">
@@ -186,61 +234,83 @@ export default function ServicesPage() {
                       {service.duration} min
                     </span>
                   </div>
+                  
                   <p className="text-gray-600 text-sm mb-4">
                     {service.description}
                   </p>
+                  
                   <div className="flex items-center justify-between">
-                    <span className="text-[#E8B4B8] font-bold text-xl">
+                    <span className="text-black font-bold text-xl">
                       KSH {service.price.toLocaleString()}
                     </span>
-                    {quantity === 0 ? <button onClick={() => addService({
-                  ...service,
-                  quantity: 1
-                })} className="bg-[#E8B4B8] hover:bg-[#d9a5a9] text-white px-4 py-2 rounded-full flex items-center gap-2 transition-all duration-300 transform hover:scale-105">
+                    
+                    {quantity === 0 ? (
+                      <button 
+                        onClick={() => addService({
+                          ...service,
+                          quantity: 1
+                        })}
+                        className="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-all duration-300 transform hover:scale-105"
+                      >
                         <PlusIcon className="w-4 h-4" />
                         Add
-                      </button> : <div className="flex items-center gap-3 bg-[#E8B4B8]/10 rounded-full px-2 py-1">
-                        <button onClick={() => updateServiceQuantity(service.id, quantity - 1)} className="w-8 h-8 bg-[#E8B4B8] hover:bg-[#d9a5a9] text-white rounded-full flex items-center justify-center transition-all">
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-3 bg-gray-100 rounded-md px-2 py-1">
+                        <button 
+                          onClick={() => updateServiceQuantity(service.id, quantity - 1)}
+                          className="w-8 h-8 bg-black hover:bg-gray-800 text-white rounded-md flex items-center justify-center transition-all"
+                        >
                           <MinusIcon className="w-4 h-4" />
                         </button>
                         <span className="font-semibold text-[#2C2C2C] w-6 text-center">
                           {quantity}
                         </span>
-                        <button onClick={() => updateServiceQuantity(service.id, quantity + 1)} className="w-8 h-8 bg-[#E8B4B8] hover:bg-[#d9a5a9] text-white rounded-full flex items-center justify-center transition-all">
+                        <button 
+                          onClick={() => updateServiceQuantity(service.id, quantity + 1)}
+                          className="w-8 h-8 bg-black hover:bg-gray-800 text-white rounded-md flex items-center justify-center transition-all"
+                        >
                           <PlusIcon className="w-4 h-4" />
                         </button>
-                      </div>}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </motion.div>;
-        })}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
+
       {/* Sticky Bottom Bar */}
-      {selectedServices.length > 0 && <motion.div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 z-50" initial={{
-      y: 100
-    }} animate={{
-      y: 0
-    }} transition={{
-      type: 'spring',
-      damping: 20
-    }}>
+      {selectedServices.length > 0 && (
+        <motion.div 
+          className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 z-50"
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          transition={{ type: 'spring', damping: 20 }}
+          layout // Add layout prop
+        >
           <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">
-                  {selectedServices.length} service
-                  {selectedServices.length > 1 ? 's' : ''} selected
+                  {selectedServices.length} service{selectedServices.length > 1 ? 's' : ''} selected
                 </p>
                 <p className="text-2xl font-bold text-[#2C2C2C]">
                   KSH {getTotalPrice().toLocaleString()}
                 </p>
               </div>
-              <button onClick={handleContinue} className="bg-[#E8B4B8] hover:bg-[#d9a5a9] text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105">
+              <button 
+                onClick={handleContinue}
+                className="bg-black hover:bg-gray-800 text-white px-8 py-3 rounded-md font-semibold transition-all duration-300 transform hover:scale-105"
+              >
                 Continue
               </button>
             </div>
           </div>
-        </motion.div>}
-    </div>;
+        </motion.div>
+      )}
+    </div>
+  );
 }

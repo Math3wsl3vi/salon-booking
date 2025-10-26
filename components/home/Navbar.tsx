@@ -101,7 +101,7 @@ const Navbar = () => {
           <Link href="/cart" className="relative">
             <ShoppingBag className="w-6 h-6 text-[#2C2C2C]" />
             {cartItemCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-[#E8B4B8] text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm">
+              <span className="absolute -top-2 -right-2 bg-[#E8B4B8] text-white text-xs font-semibold px-2 py-0.5 rounded-md shadow-sm">
                 {cartItemCount}
               </span>
             )}
@@ -147,14 +147,14 @@ const Navbar = () => {
               {showInstallButton && (
                 <button
                   onClick={handleInstallClick}
-                  className="mt-4 bg-[#E8B4B8] text-white py-2 rounded-full font-medium shadow-sm hover:shadow-md transition"
+                  className="mt-4 bg-[#E8B4B8] text-white py-2 rounded-md font-medium shadow-sm hover:shadow-md transition"
                 >
                   Install App
                 </button>
               )}
               <button
                 onClick={handleLogout}
-                className="mt-4 bg-[#2C2C2C] text-white py-2 rounded-full font-medium hover:bg-[#3c3c3c] transition"
+                className="mt-4 bg-[#2C2C2C] text-white py-2 rounded-md font-medium hover:bg-[#3c3c3c] transition"
               >
                 Logout
               </button>

@@ -17,7 +17,7 @@ export default {
 		  },
   		colors: {
 			orange: {
-				1:'#017023',
+				1:'#000000',
 				2:'#737f79'
 			},
   			background: 'hsl(var(--background))',

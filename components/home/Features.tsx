@@ -73,7 +73,7 @@ const Featured = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-[#E8B4B8]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
 
             {/* Icon */}
-            <div className="relative z-10 w-14 h-14 bg-[#E8B4B8]/20 rounded-full flex items-center justify-center mb-6 group-hover:bg-[#E8B4B8] transition-colors duration-500">
+            <div className="relative z-10 w-14 h-14 bg-[#E8B4B8]/20 rounded-md flex items-center justify-center mb-6 group-hover:bg-[#E8B4B8] transition-colors duration-500">
               <service.icon className="w-7 h-7 text-[#E8B4B8] group-hover:text-white transition-colors duration-500" />
             </div>
 
@@ -89,13 +89,13 @@ const Featured = () => {
 
             {/* Price Tag */}
             <div className="flex items-center justify-between relative z-10">
-              <span className="text-[#E8B4B8] font-bold text-lg">
+              <span className="text-black font-bold text-lg">
                 KSH {service.price.toLocaleString()}
               </span>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-4 py-1.5 text-sm font-medium bg-[#E8B4B8]/90 text-white rounded-full shadow-sm hover:bg-[#dba3a8] transition-colors"
+                className="px-4 py-1.5 text-sm font-medium bg-black text-white rounded-md shadow-sm hover:bg-[#dba3a8] transition-colors"
               >
                 Book Now
               </motion.button>
