@@ -92,7 +92,7 @@ const Navbar = () => {
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/")}>
           <Image src="/images/barber.png" alt="logo" width={40} height={40} className="" />
           <span className="text-xl md:text-2xl font-serif tracking-wide text-[#2C2C2C]" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Luxe Beauty
+          Maison de Beauté
           </span>
         </div>
 
@@ -161,7 +161,7 @@ const Navbar = () => {
             </nav>
 
             <div className="mt-auto text-center text-sm text-gray-400">
-              © {new Date().getFullYear()} Luxe Beauty Salon
+              © {new Date().getFullYear()} Maison de Beauté Salon
             </div>
           </motion.aside>
         )}

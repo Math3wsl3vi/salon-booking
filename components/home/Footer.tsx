@@ -1,8 +1,6 @@
 "use client";
 
 import { ClockIcon, MailIcon, MapPinIcon, PhoneIcon } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import React from "react";
 
 const Footer = () => {
@@ -13,7 +11,7 @@ const Footer = () => {
         <h3 className="text-2xl font-serif mb-4" style={{
         fontFamily: 'Playfair Display, serif'
       }}>
-          Luxe Beauty Salon
+          Maison de Beauté Salon
         </h3>
         <p className="text-gray-400">Where beauty meets excellence</p>
       </div>
@@ -49,7 +47,7 @@ const Footer = () => {
       </div>
     </div>
     <div className="max-w-7xl mx-auto mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
-      <p>&copy; 2024 Luxe Beauty Salon. All rights reserved.</p>
+      <p>&copy; 2024 Maison de Beauté Salon. All rights reserved.</p>
     </div>
   </footer>
   );

@@ -193,7 +193,7 @@ const AdminBookings = () => {
     .reduce((sum, booking) => sum + booking.price, 0);
 
   const pendingBookings = bookings.filter(booking => booking.status === "pending").length;
-  const confirmedBookings = bookings.filter(booking => booking.status === "confirmed").length;
+  // const confirmedBookings = bookings.filter(booking => booking.status === "confirmed").length;
   const completedBookings = bookings.filter(booking => booking.status === "completed").length;
 
   // Pagination logic

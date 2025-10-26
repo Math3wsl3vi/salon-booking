@@ -1,6 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion';
 import { StarIcon } from 'lucide-react';
+import Image from 'next/image';
 
 const stylists = [{
     id: '1',
@@ -43,7 +44,7 @@ const Stylist = () => {
           delay: index * 0.1
         }}>
               <div className="w-48 h-48 mx-auto mb-4 rounded-full overflow-hidden border-4 border-[#E8B4B8] shadow-lg">
-                <img src={stylist.image} alt={stylist.name} className="w-full h-full object-cover" />
+                <Image width={400} height={400} src={stylist.image} alt={stylist.name} className="w-full h-full object-cover" />
               </div>
               <h3 className="text-2xl font-semibold mb-2 text-[#2C2C2C]">
                 {stylist.name}

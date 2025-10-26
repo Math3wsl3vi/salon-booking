@@ -16,6 +16,7 @@ export default function DateTimePage() {
   const today = new Date().toISOString().split('T')[0]; // Prevent past date selection
   const [selectedDate, setSelectedDate] = useState<string>(""); // not Date
   const dateObject = new Date(selectedDate);
+  console.log(dateObject)
 
 
 

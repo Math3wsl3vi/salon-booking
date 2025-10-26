@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { collection, onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, Timestamp } from "firebase/firestore";
 import {
   Table,
   TableBody,
@@ -30,7 +30,7 @@ interface User {
   email: string;
   userType: "customer" | "stylist" | "admin";
   phone?: string;
-  createdAt?: any;
+  createdAt?: Timestamp;
   status?: "active" | "inactive";
   specialization?: string; // For stylists
   rating?: number; // For stylists

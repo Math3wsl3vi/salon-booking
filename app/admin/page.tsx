@@ -135,7 +135,7 @@ const AdminDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-blue-600" />
-              Today's Appointments
+              {"Today's"} Appointments
             </CardTitle>
           </CardHeader>
           <CardContent>

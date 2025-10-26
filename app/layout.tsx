@@ -8,8 +8,8 @@ import { BookingProvider } from "@/context/BookingContext";
 
 
 export const metadata: Metadata = {
-  title: "Chakulahub",
-  description: "Meal Booking Platform",
+  title: "Maison de Beauté",
+  description: "Salon Booking Platform",
   manifest: "/manifest.json",
 };
 

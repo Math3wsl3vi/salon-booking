@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, StarIcon, SparklesIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useBooking } from '@/context/BookingContext';
+import Image from 'next/image';
 const stylists = [{
   id: 'any',
   name: 'Any Available Stylist',
@@ -108,7 +109,7 @@ export default function StylistPage() {
           }}>
                 <div className="relative">
                   <div className="h-64 overflow-hidden">
-                    <img src={stylist.image} alt={stylist.name} className="w-full h-full object-cover" />
+                    <Image width={400} height={400} src={stylist.image} alt={stylist.name} className="w-full h-full object-cover" />
                   </div>
                   {stylist.id === 'any' && <div className="absolute top-4 left-4 bg-[#E8B4B8] text-white px-3 py-1 rounded-full flex items-center gap-1">
                       <SparklesIcon className="w-4 h-4" />

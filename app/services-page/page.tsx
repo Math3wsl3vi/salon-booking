@@ -1,9 +1,10 @@
 'use client'
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ScissorsIcon, SparklesIcon, HeartIcon, SearchIcon, PlusIcon, MinusIcon, ArrowLeftIcon, CheckIcon } from 'lucide-react';
+import { SearchIcon, PlusIcon, MinusIcon, ArrowLeftIcon, CheckIcon } from 'lucide-react';
 import { useBooking } from '@/context/BookingContext';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 const categories = ['All', 'Hair', 'Nails', 'Skin', 'Spa'];
 const allServices = [{
   id: '1',
@@ -107,7 +108,6 @@ export default function ServicesPage() {
   const {
     selectedServices,
     addService,
-    removeService,
     updateServiceQuantity,
     getTotalPrice
   } = useBooking();
@@ -172,7 +172,7 @@ export default function ServicesPage() {
             delay: index * 0.05
           }}>
                 <div className="relative h-48 overflow-hidden">
-                  <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
+                  <Image width={400} height={400} src={service.image} alt={service.name} className="w-full h-full object-cover" />
                   {isSelected && <div className="absolute top-4 right-4 w-8 h-8 bg-[#E8B4B8] rounded-full flex items-center justify-center shadow-lg">
                       <CheckIcon className="w-5 h-5 text-white" />
                     </div>}
