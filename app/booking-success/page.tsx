@@ -3,9 +3,11 @@ import React, { useEffect } from 'react';
 import { useBooking } from '@/context/BookingContext';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircleIcon, CalendarIcon, ClockIcon, UserIcon, Share2Icon, DownloadIcon } from 'lucide-react';
+import { CheckCircleIcon, CalendarIcon, ClockIcon, UserIcon, Share2Icon, DownloadIcon, Loader } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const BookingSuccess = () => {
+  const {toast} = useToast()
   const router = useRouter();
   const {
     selectedServices,
@@ -40,8 +42,7 @@ useEffect(() => {
     return (
       <div className="min-h-screen bg-[#FAF6F3] flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">No Booking Found</h1>
-          <p className="text-gray-600 mb-6">Please start a new booking.</p>
+         <Loader/>
           <button 
             onClick={() => router.push('/services-page')}
             className="bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800 transition-all"
@@ -121,8 +122,11 @@ useEffect(() => {
       alert('Booking details copied to clipboard!');
     }
   };
-
   const handleBackToHome = () => {
+    toast({
+      title: "Booking cleared",
+      description: "You’ve been redirected to the home page.",
+    });
     clearBooking();
     router.push('/');
   };

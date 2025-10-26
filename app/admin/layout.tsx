@@ -4,6 +4,7 @@ import "./../globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { BookingProvider } from "@/context/BookingContext";
 import { AuthProvider } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 
 export const metadata: Metadata = {
@@ -23,10 +24,12 @@ export default function RootLayout({
         className={`antialiased`}
       >
         <AuthProvider>
+        <ProtectedRoute>
         <BookingProvider>
         <Toaster/>
         {children}
         </BookingProvider>
+        </ProtectedRoute>
         </AuthProvider>
       </body>
     </html>

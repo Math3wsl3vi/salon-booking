@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
   Calendar, 
@@ -12,15 +12,180 @@ import {
   UserCheck
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  Timestamp,
+  onSnapshot
+} from "firebase/firestore";
+import { db } from "@/configs/firebaseConfig";
+
+// Define types for our data
+interface DashboardStats {
+  totalAppointments: number;
+  totalCustomers: number;
+  totalServices: number;
+  totalStylists: number;
+  totalRevenue: number;
+  todaysAppointments: number;
+  pendingBookings: number;
+  monthlyRevenue: number;
+  activeStylists: number;
+}
+
+interface Appointment {
+  time: string;
+  service: string;
+  customer: string;
+  stylist: string;
+  date: Date;
+}
+
+interface Booking {
+  id: string;
+  customerName: string;
+  serviceName: string;
+  stylistName: string;
+  date: Timestamp;
+  time: string;
+  status: string;
+  price: number;
+}
 
 const AdminDashboard = () => {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentAppointments, setRecentAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return `Ksh ${amount?.toLocaleString() || '0'}`;
+  };
+
+  // Fetch dashboard data from Firebase
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+
+      // Get today's date range
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      // Get current month range
+      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+      // Fetch all collections in parallel
+      const [
+        stylistsSnapshot,
+        servicesSnapshot,
+        customersSnapshot,
+        bookingsSnapshot,
+        todaysBookingsSnapshot,
+        monthlyBookingsSnapshot,
+        pendingBookingsSnapshot
+      ] = await Promise.all([
+        getDocs(collection(db, "stylists")),
+        getDocs(collection(db, "services")),
+        getDocs(collection(db, "customers")),
+        getDocs(collection(db, "bookings")),
+        getDocs(query(
+          collection(db, "bookings"),
+          where("date", ">=", Timestamp.fromDate(today)),
+          where("date", "<", Timestamp.fromDate(tomorrow))
+        )),
+        getDocs(query(
+          collection(db, "bookings"),
+          where("date", ">=", Timestamp.fromDate(firstDayOfMonth)),
+          where("date", "<=", Timestamp.fromDate(lastDayOfMonth)),
+          where("status", "in", ["completed", "confirmed"])
+        )),
+        getDocs(query(
+          collection(db, "bookings"),
+          where("status", "==", "pending")
+        ))
+      ]);
+
+      // Calculate stats
+      const totalStylists = stylistsSnapshot.size;
+      const totalServices = servicesSnapshot.size;
+      const totalCustomers = customersSnapshot.size;
+      const totalAppointments = bookingsSnapshot.size;
+      const todaysAppointments = todaysBookingsSnapshot.size;
+      const pendingBookings = pendingBookingsSnapshot.size;
+
+      // Calculate monthly revenue
+      const monthlyRevenue = monthlyBookingsSnapshot.docs.reduce((total, doc) => {
+        const booking = doc.data() as Booking;
+        return total + (booking.price || 0);
+      }, 0);
+
+      // Calculate active stylists (stylists with bookings today)
+      const activeStylistsToday = new Set(
+        todaysBookingsSnapshot.docs.map(doc => doc.data().stylistId || doc.data().stylistName)
+      ).size;
+
+      // Get recent appointments for today
+      const todayAppointments = todaysBookingsSnapshot.docs
+        .map(doc => {
+          const booking = doc.data() as Booking;
+          return {
+            time: booking.time,
+            service: booking.serviceName,
+            customer: booking.customerName,
+            stylist: booking.stylistName,
+            date: booking.date.toDate()
+          };
+        })
+        .sort((a, b) => a.time.localeCompare(b.time))
+        .slice(0, 4); // Limit to 4 appointments
+
+      setStats({
+        totalAppointments,
+        totalCustomers,
+        totalServices,
+        totalStylists,
+        totalRevenue: monthlyRevenue,
+        todaysAppointments,
+        pendingBookings,
+        monthlyRevenue,
+        activeStylists: activeStylistsToday
+      });
+
+      setRecentAppointments(todayAppointments);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error fetching dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Set up real-time listener for bookings
+  useEffect(() => {
+    fetchDashboardData();
+
+    // Real-time listener for bookings changes
+    const unsubscribe = onSnapshot(collection(db, "bookings"), () => {
+      fetchDashboardData();
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const dashboardCards = [
     {
       title: "Appointments",
       description: "Manage today's bookings & schedule",
       href: "/admin/orders",
       icon: Calendar,
-      count: "24",
+      count: stats?.todaysAppointments?.toString() || "0",
       color: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
     },
     {
@@ -28,7 +193,7 @@ const AdminDashboard = () => {
       description: "Manage customers & stylists",
       href: "/admin/users",
       icon: Users,
-      count: "156",
+      count: stats?.totalCustomers?.toString() || "0",
       color: "bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
     },
     {
@@ -36,7 +201,7 @@ const AdminDashboard = () => {
       description: "Manage services & pricing",
       href: "/admin/services-admin",
       icon: Scissors,
-      count: "12",
+      count: stats?.totalServices?.toString() || "0",
       color: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
     },
     {
@@ -44,7 +209,7 @@ const AdminDashboard = () => {
       description: "Manage beauty professionals",
       href: "/admin/stylists",
       icon: UserCheck,
-      count: "8",
+      count: stats?.totalStylists?.toString() || "0",
       color: "bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100"
     },
     {
@@ -52,7 +217,7 @@ const AdminDashboard = () => {
       description: "View earnings & analytics",
       href: "/admin/revenue",
       icon: DollarSign,
-      count: "Ksh 48.2K",
+      count: formatCurrency(stats?.monthlyRevenue || 0),
       color: "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
     },
     {
@@ -66,14 +231,57 @@ const AdminDashboard = () => {
   ];
 
   const quickStats = [
-    { label: "Today's Appointments", value: "12", change: "+2" },
-    { label: "Pending Bookings", value: "5", change: "-1" },
-    { label: "Monthly Revenue", value: "Ksh 48.2K", change: "+12%" },
-    { label: "Active Stylists", value: "8", change: "+1" }
+    { 
+      label: "Today's Appointments", 
+      value: stats?.todaysAppointments?.toString() || "0", 
+      change: "+2" 
+    },
+    { 
+      label: "Pending Bookings", 
+      value: stats?.pendingBookings?.toString() || "0", 
+      change: "-1" 
+    },
+    { 
+      label: "Monthly Revenue", 
+      value: formatCurrency(stats?.monthlyRevenue || 0), 
+      change: "+12%" 
+    },
+    { 
+      label: "Active Stylists", 
+      value: stats?.activeStylists?.toString() || "0", 
+      change: "+1" 
+    }
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 mt-20 font-poppins flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 mt-20 font-poppins flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <p>Error loading dashboard: {error}</p>
+          <button 
+            onClick={fetchDashboardData}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6 mt-20 font-popppinspins">
+    <div className="min-h-screen bg-gray-50 p-6 mt-20 font-poppins">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Salon Dashboard</h1>
@@ -140,23 +348,24 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {[
-                { time: "09:00 AM", service: "Haircut", customer: "Sarah Johnson", stylist: "Emma Wilson" },
-                { time: "10:30 AM", service: "Manicure", customer: "Mike Davis", stylist: "Lisa Brown" },
-                { time: "02:00 PM", service: "Hair Color", customer: "Jennifer Smith", stylist: "Alex Taylor" },
-                { time: "04:30 PM", service: "Facial", customer: "Robert Wilson", stylist: "Maria Garcia" }
-              ].map((appointment, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-semibold text-gray-800">{appointment.time}</p>
-                    <p className="text-sm text-gray-600">{appointment.service}</p>
+              {recentAppointments.length > 0 ? (
+                recentAppointments.map((appointment, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold text-gray-800">{appointment.time}</p>
+                      <p className="text-sm text-gray-600">{appointment.service}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-800">{appointment.customer}</p>
+                      <p className="text-sm text-gray-500">{appointment.stylist}</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-800">{appointment.customer}</p>
-                    <p className="text-sm text-gray-500">{appointment.stylist}</p>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No appointments for today
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>

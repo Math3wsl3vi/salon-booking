@@ -68,7 +68,7 @@ export default function CustomerInfoPage() {
               Complete Your Booking
             </h1>
             <p className="text-gray-600 text-lg">
-              Please provide your contact information to confirm your appointment
+            Let us know the best way to contact you.
             </p>
           </div>
 
