@@ -18,7 +18,7 @@ export default function Home() {
 
   return (
     <ProtectedRoute>
-      <div className="flex flex-col relative h-screen w-full font-pop">
+      <div className="flex flex-col relative h-screen w-full font-popppins">
           <Hero />
           <Features/>
           <Stylist/>

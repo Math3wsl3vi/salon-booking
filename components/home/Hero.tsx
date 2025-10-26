@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SparklesIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-const salonImages = ['https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&h=600&fit=crop', 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&h=600&fit=crop', 'https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=1200&h=600&fit=crop'];
+const salonImages = [
+  'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&h=600&fit=crop', 
+  'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&h=600&fit=crop', 
+  'https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=1200&h=600&fit=crop',
+  'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170'
+];
 
 
 export default function Hero() {
@@ -11,7 +16,7 @@ export default function Hero() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentImage(prev => (prev + 1) % salonImages.length);
-    }, 4000);
+    }, 8000);
     return () => clearInterval(timer);
   }, []);
   return <div className="min-h-screen bg-[#FAF6F3] w-full">
