@@ -135,7 +135,7 @@ export default function ServicesPage() {
             <button onClick={() => router.push('/')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <ArrowLeftIcon className="w-6 h-6 text-[#2C2C2C]" />
             </button>
-            <h1 className="text-3xl font-serif text-[#2C2C2C]" style={{
+            <h1 className="text-3xl font-serif text-[#2C2C2C] hidden md:block" style={{
             fontFamily: 'Playfair Display, serif'
           }}>
               Choose Your Services

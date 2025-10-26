@@ -91,7 +91,7 @@ const Navbar = () => {
         {/* Logo & Brand */}
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/")}>
           <Image src="/images/barber.png" alt="logo" width={40} height={40} className="" />
-          <span className="text-xl md:text-2xl font-serif tracking-wide text-[#2C2C2C]" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <span className="text-xl md:text-2xl font-serif tracking-wide text-[#2C2C2C] hidden md:block" style={{ fontFamily: 'Playfair Display, serif' }}>
           Maison de Beauté
           </span>
         </div>

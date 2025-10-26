@@ -96,22 +96,22 @@ export default function Hero() {
       </div>
 
       {/* Floating Book Button for Mobile */}
-      <motion.button
+      {/* <motion.button
         onClick={() => router.push('/services-page')}
         className="md:hidden fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-[#E8B4B8] to-[#f3c2c6] rounded-full shadow-2xl flex items-center justify-center z-50"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >
         <SparklesIcon className="w-7 h-7 text-white" />
-      </motion.button>
+      </motion.button> */}
     </section>
       {/* Floating Action Button (Mobile) */}
-      <motion.button onClick={() => router.push('/services-page')} className="md:hidden fixed bottom-6 right-6 w-16 h-16 bg-[#E8B4B8] rounded-full shadow-2xl flex items-center justify-center z-50" whileHover={{
+      {/* <motion.button onClick={() => router.push('/services-page')} className="md:hidden fixed bottom-6 right-6 w-16 h-16 bg-[#E8B4B8] rounded-full shadow-2xl flex items-center justify-center z-50" whileHover={{
       scale: 1.1
     }} whileTap={{
       scale: 0.9
     }}>
         <SparklesIcon className="w-6 h-6 text-white" />
-      </motion.button>
+      </motion.button> */}
     </div>;
 }
